@@ -1,5 +1,8 @@
 import time
+import random
 
-for i in range(10):
-    time.sleep(1)
-    print("Process 2 is running!", flush=True)
+while True:
+    time.sleep(2)
+    random_int = random.randint(1, 100)
+    output = "Data: " + str(random_int)
+    print(output, flush=True)
