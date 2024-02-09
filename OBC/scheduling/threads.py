@@ -1,6 +1,6 @@
 # ///////////////////////////////////////////////////////////////// #
-# step 1: run a process (done)
-# step 2: run a process with real-time print updates (done)
+# step 1: run a thread (done)
+# step 2: run a thread with real-time print updates (done)
 # step 3: accomplish this with two or more programs (done)
 # step 4: kill a program mid-run (NOT YET DONE)
 # ///////////////////////////////////////////////////////////////// #
