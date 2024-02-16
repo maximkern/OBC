@@ -8,6 +8,9 @@
 
 
 
+
+
+
 # IMPORTS
 import multiprocessing
 import subprocess
@@ -16,9 +19,9 @@ import queue
 
 # VARIABLES
 process_scripts = [ # insert relative paths to these files
-"OBC/scheduling/testing/process0.py",
-"OBC/scheduling/testing/process1.py",
-"OBC/scheduling/testing/process2.py",
+"OBC/scheduling/data_processes/process0.py",
+"OBC/scheduling/data_processes/process1.py",
+"OBC/scheduling/data_processes/process2.py",
 ]
 
 
@@ -37,7 +40,6 @@ def run_script(script_name, output_queue, stop_event, process_id):
 
 # MAIN FUNCTION
 if __name__ == "__main__":
-
     # setup printing to console
     output_queue = multiprocessing.Queue()
 
