@@ -7,10 +7,6 @@
 # ///////////////////////////////////////////////////////////////// #
 
 
-
-
-
-
 # IMPORTS
 import multiprocessing
 import subprocess
@@ -19,18 +15,25 @@ import queue
 
 # VARIABLES
 data_processes = [ # insert relative paths to these files
-    "OBC/scheduling/data_processes/battery_percentage.py",
-    "OBC/scheduling/data_processes/imu_angularvelocity.py",
+    "OBC/scheduling/data_processes/battery_percentage.py",     
+    "OBC/scheduling/data_processes/imu_angularvelocity.py",     
     "OBC/scheduling/data_processes/imu_velocity.py",
 ]
 state_processes = [ # insert relative paths to these files
-    "OBC/scheduling/state_processes/state_bootup.py",
-    "OBC/scheduling/state_processes/state_detumble.py",
-    "OBC/scheduling/state_processes/state_charge.py",
+    "OBC/scheduling/state_processes/state_bootup.py",           # state process id = 100, index = 0
+    "OBC/scheduling/state_processes/state_detumble.py",         # state process id = 101, index = 1
+    "OBC/scheduling/state_processes/state_charge.py",           # state process id = 102, index = 2
 ]
 
 
-# RUN SCRIPT
+# STATE PROCESS IDS
+# start at 100 to allow for process ids 0-99 to be data processes
+state_processes_ids = {"bootup" : 100,
+                       "detumble" : 101,
+                       "charge" : 102}
+
+
+# RUN A PROCESS
 def run_script(script_name, output_queue, stop_event, process_id):
     # to run the script, we need an interpreter, the python interpreter is located at the file "/usr/bin/python3"
     # PIPE = make a standard pipe, which allows for standard communication across channels, in this case the I/O channel 
@@ -43,9 +46,12 @@ def run_script(script_name, output_queue, stop_event, process_id):
             output_queue.put((process_id, output.strip()))
 
 
-# CREATE NEW PROCESS 
-def startup_process():
-    print("not yet implemented")
+# CREATE NEW STATE PROCESS 
+def startup_state_process(process_id, dynamic_vars):
+    dynamic_vars["stop_event" + str(process_id)] = multiprocessing.Event()
+    dynamic_vars["process" + str(process_id)]  = multiprocessing.Process(target=run_script, args=(state_processes[process_id-100], output_queue, dynamic_vars["stop_event" + str(process_id)], process_id))
+    dynamic_vars["process" + str(process_id)].start()
+    processes.append(dynamic_vars["process" + str(process_id)])
 
 
 # MAIN FUNCTION
@@ -57,34 +63,44 @@ if __name__ == "__main__":
 
 
     # FIRE THE "BOOTUP STATE PROCESS"
-    stop_event0 = multiprocessing.Event()
-    process0 = multiprocessing.Process(target=run_script, args=(state_processes[0], output_queue, stop_event0, 0))
-    process0.start()
-    processes.append(process0)
+    stop_event100 = multiprocessing.Event()
+    process100 = multiprocessing.Process(target=run_script, args=(state_processes[0], output_queue, stop_event100, 100))
+    process100.start()
+    processes.append(process100)
 
 
     # FIRE UP "DATA PROCESSES"
     dynamic_vars = {}
-    for i in range(1, len(data_processes)):
+    for i in range(1, len(data_processes) + 1):
         dynamic_vars["stop_event" + str(i)] = multiprocessing.Event()
-        dynamic_vars["process" + str(i)]  = multiprocessing.Process(target=run_script, args=(data_processes[1], output_queue, dynamic_vars["stop_event" + str(i)], i))
+        dynamic_vars["process" + str(i)]  = multiprocessing.Process(target=run_script, args=(data_processes[i-1], output_queue, dynamic_vars["stop_event" + str(i)], i))
         dynamic_vars["process" + str(i)].start()
         processes.append(dynamic_vars["process" + str(i)])
 
 
-    # OUTPUT PRINT STATEMENTS FROM PROCESSES
     try:
         while True:
             try:
+                # OUTPUT PRINT STATEMENTS FROM PROCESSES
                 process_id, output = output_queue.get_nowait()
                 print(f"Process {process_id}: {output}")
 
-                # determine whether to kill the process
+
+                # OVERRIDE SWITCH
+                # to be implemented
+
+
+                # SEQUENTIAL SWITCH
+                if "State Complete" in output:
+                    startup_state_process(process_id + 1, dynamic_vars)
+
+                
+                # DECIDE TO KILL
                 if process_id == 1:
                     if "4" in output or "5" in output:
                         print("Process 1 terminated, due to data output")
                         processes[process_id].terminate()
-                
+
             except queue.Empty:
                 pass
     except KeyboardInterrupt:
