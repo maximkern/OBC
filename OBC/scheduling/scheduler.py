@@ -18,14 +18,19 @@ import queue
 
 
 # VARIABLES
-process_scripts = [ # insert relative paths to these files
-"OBC/scheduling/data_processes/process0.py",
-"OBC/scheduling/data_processes/process1.py",
-"OBC/scheduling/data_processes/process2.py",
+data_processes = [ # insert relative paths to these files
+    "OBC/scheduling/data_processes/battery_percentage.py",
+    "OBC/scheduling/data_processes/imu_angularvelocity.py",
+    "OBC/scheduling/data_processes/imu_velocity.py",
+]
+state_processes = [ # insert relative paths to these files
+    "OBC/scheduling/state_processes/state_bootup.py",
+    "OBC/scheduling/state_processes/state_detumble.py",
+    "OBC/scheduling/state_processes/state_charge.py",
 ]
 
 
-# RUN SCRIPT FUNCTION
+# RUN SCRIPT
 def run_script(script_name, output_queue, stop_event, process_id):
     # to run the script, we need an interpreter, the python interpreter is located at the file "/usr/bin/python3"
     # PIPE = make a standard pipe, which allows for standard communication across channels, in this case the I/O channel 
@@ -38,29 +43,41 @@ def run_script(script_name, output_queue, stop_event, process_id):
             output_queue.put((process_id, output.strip()))
 
 
+# CREATE NEW PROCESS 
+def startup_process():
+    print("not yet implemented")
+
+
 # MAIN FUNCTION
 if __name__ == "__main__":
-    # setup printing to console
+
+    # SETUP MULTIPROCESSING
     output_queue = multiprocessing.Queue()
-
-    stop_event1 = multiprocessing.Event()
-    stop_event2 = multiprocessing.Event()
-
-    # make a process for each piece of work to do
     processes = []
-    process0 = multiprocessing.Process(target=run_script, args=(process_scripts[0], output_queue, stop_event1, 0))
+
+
+    # FIRE THE "BOOTUP STATE PROCESS"
+    stop_event0 = multiprocessing.Event()
+    process0 = multiprocessing.Process(target=run_script, args=(state_processes[0], output_queue, stop_event0, 0))
     process0.start()
     processes.append(process0)
-    process1 = multiprocessing.Process(target=run_script, args=(process_scripts[1], output_queue, stop_event2, 1))
-    process1.start()
-    processes.append(process1)
 
-    # dynamically output data or print statements from each process
+
+    # FIRE UP "DATA PROCESSES"
+    dynamic_vars = {}
+    for i in range(1, len(data_processes)):
+        dynamic_vars["stop_event" + str(i)] = multiprocessing.Event()
+        dynamic_vars["process" + str(i)]  = multiprocessing.Process(target=run_script, args=(data_processes[1], output_queue, dynamic_vars["stop_event" + str(i)], i))
+        dynamic_vars["process" + str(i)].start()
+        processes.append(dynamic_vars["process" + str(i)])
+
+
+    # OUTPUT PRINT STATEMENTS FROM PROCESSES
     try:
         while True:
             try:
                 process_id, output = output_queue.get_nowait()
-                print(f"Process {process_id} ", output)
+                print(f"Process {process_id}: {output}")
 
                 # determine whether to kill the process
                 if process_id == 1:
