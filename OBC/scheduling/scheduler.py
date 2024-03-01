@@ -58,12 +58,10 @@ def startup_state_process(process_id, dynamic_vars):
 # MAIN FUNCTION
 if __name__ == "__main__":
 
-    print("in main")
 
     # SETUP MULTIPROCESSING
     output_queue = multiprocessing.Queue()
     processes = []
-    print("setup multiprocessing")
 
 
     # FIRE THE "BOOTUP STATE PROCESS"

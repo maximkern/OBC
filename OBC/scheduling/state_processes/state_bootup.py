@@ -11,6 +11,7 @@ def on_loop():
     time.sleep(5) 
 
 
-print("Starting Up")
+print("Starting Up", flush = True)
 time.sleep(2)
-print("State Complete")
+print("State Complete", flush = True)
+
