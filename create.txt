@@ -1,0 +1,3 @@
+TODO: make this a bash.rc file for starting up the program
+Install the package
+python3 -m pip install -e /Applications/VSCode/SEDS/OBC   
