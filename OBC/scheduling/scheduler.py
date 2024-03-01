@@ -11,18 +11,19 @@
 import multiprocessing
 import subprocess
 import queue
-
+from OBC import helpers
 
 # VARIABLES
+root_dir = helpers.get_abs_path()
 data_processes = [ # insert relative paths to these files
-    "OBC/scheduling/data_processes/battery_percentage.py",     
-    "OBC/scheduling/data_processes/imu_angularvelocity.py",     
-    "OBC/scheduling/data_processes/imu_velocity.py",
+    root_dir + "/scheduling/data_processes/battery_percentage.py",     
+    root_dir + "/scheduling/data_processes/imu_angularvelocity.py",     
+    root_dir + "/scheduling/data_processes/imu_velocity.py",
 ]
 state_processes = [ # insert relative paths to these files
-    "OBC/scheduling/state_processes/state_bootup.py",           # state process id = 100, index = 0
-    "OBC/scheduling/state_processes/state_detumble.py",         # state process id = 101, index = 1
-    "OBC/scheduling/state_processes/state_charge.py",           # state process id = 102, index = 2
+    root_dir + "/scheduling/state_processes/state_bootup.py",           # state process id = 100, index = 0
+    root_dir + "/scheduling/state_processes/state_detumble.py",         # state process id = 101, index = 1
+    root_dir + "/scheduling/state_processes/state_charge.py",           # state process id = 102, index = 2
 ]
 
 
@@ -57,9 +58,12 @@ def startup_state_process(process_id, dynamic_vars):
 # MAIN FUNCTION
 if __name__ == "__main__":
 
+    print("in main")
+
     # SETUP MULTIPROCESSING
     output_queue = multiprocessing.Queue()
     processes = []
+    print("setup multiprocessing")
 
 
     # FIRE THE "BOOTUP STATE PROCESS"
@@ -77,31 +81,28 @@ if __name__ == "__main__":
         dynamic_vars["process" + str(i)].start()
         processes.append(dynamic_vars["process" + str(i)])
 
-
-    try:
-        while True:
-            try:
-                # OUTPUT PRINT STATEMENTS FROM PROCESSES
-                process_id, output = output_queue.get_nowait()
-                print(f"Process {process_id}: {output}")
+    while True:
+        try:
+            # OUTPUT PRINT STATEMENTS FROM PROCESSES
+            process_id, output = output_queue.get_nowait()
+            print(f"Process {process_id}: {output}")
 
 
-                # OVERRIDE SWITCH
-                # to be implemented
+            # OVERRIDE SWITCH
+            # to be implemented
 
 
-                # SEQUENTIAL SWITCH
-                if "State Complete" in output:
-                    startup_state_process(process_id + 1, dynamic_vars)
+            # SEQUENTIAL SWITCH
+            if "State Complete" in output:
+                startup_state_process(process_id + 1, dynamic_vars)
 
-                
-                # DECIDE TO KILL
-                if process_id == 1:
-                    if "4" in output or "5" in output:
-                        print("Process 1 terminated, due to data output")
-                        processes[process_id].terminate()
+            
+            # DECIDE TO KILL
+            if process_id == 1:
+                if "4" in output or "5" in output:
+                    print("Process 1 terminated, due to data output")
+                    processes[process_id].terminate()
 
-            except queue.Empty:
-                pass
-    except KeyboardInterrupt:
-        print("Keyboard interrupt. Stopping specific processes.")
+        except queue.Empty:
+            pass
+    
