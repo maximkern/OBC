@@ -1,17 +1,22 @@
+# ///////////////////////////////////////////////////////////////// #
+# BOOTUP STATE
+# ///////////////////////////////////////////////////////////////// #
 import time
 
 
+# FUNCTIONS
 def __init__():
-    # initialize parameters
-    time.sleep(0.1) 
+    print("Bootup State Begin")
+    on_loop(5)
 
 
 def on_loop():
-    # do some task for ... seconds
+    # TO-DO: do some setup functions
+    # ....
     time.sleep(5) 
 
 
-print("Starting Up", flush = True)
-time.sleep(2)
-print("State Complete", flush = True)
+# MAIN FUNCTION
+__init__()
+print("Bootup State Complete", flush = True)
 

@@ -1,18 +1,24 @@
+# ///////////////////////////////////////////////////////////////// #
+# CHARGING STATE
+# ///////////////////////////////////////////////////////////////// #
 import time
 
 
+# FUNCTIONS
 def __init__():
-    # initialize parameters
-    time.sleep(0.1) 
+    print("Charging State Begin")
+    on_loop(5)
 
 
 def on_loop(repeat):
-    # do some task for ... seconds
     for _ in range(repeat):
+        # TO-DO: call the function inside the battery
+        # ....
+
         print("Charging...", flush = True)
-    time.sleep(2) 
+        time.sleep(1) 
 
 
-
-time.sleep(2)
-print("State Complete", flush = True)
+# MAIN FUNCTION
+__init__()
+print("Charging State Complete", flush = True)
