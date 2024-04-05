@@ -5,7 +5,7 @@ import random
 
 while True:
     time.sleep(1)
-    random_int = random.randint(1, 100)
-    output = "[DATA_AV] [" + str(random_int) + "]"
+    random_int = random.randint(90, 100)
+    output = "[DATA_BP] [" + str(random_int) + "]"
     print(output, flush=True)
     

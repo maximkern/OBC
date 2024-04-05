@@ -77,6 +77,9 @@ if __name__ == "__main__":
         dynamic_vars["process" + str(i)].start()
         processes.append(dynamic_vars["process" + str(i)])
 
+
+    current_state = "bootup"
+
     while True:
         try:
             # OUTPUT PRINT STATEMENTS FROM PROCESSES
@@ -85,25 +88,77 @@ if __name__ == "__main__":
 
 
             # OVERRIDE SWITCH
-            # to be implemented
+            # regardless of the current state, these MUST be done
+            if "DATA_BP" in output and int(output[11:-1].strip()) <= 20:
+                current_state = "charge"
+                # startup_state_process(process_id + 1, dynamic_vars)
+                continue
 
 
-            # STARTUP => DETUMBLE
-            if "Bootup State Complete" in output:
+            # STARTUP => ...
+            if "[STATE_BOOTUP] [Ended]" in output:
+                current_state = "detumble"
                 startup_state_process(process_id + 1, dynamic_vars)
 
-            # DETUMBLE => CHARGE
-            if "DATA_AV" in output:
-                if int(output[11:-1].strip()) <= 0:
-                    print("yikes")
+
+            # DETUMBLE => ...
+            if current_state == "detumble":
+                if "DATA_AV" in output and int(output[11:-1].strip()) <= 0: # maybe fine-tune the threshold on lower and upper
+                    current_state = "charge"
+                    # startup_state_process(process_id + 1, dynamic_vars)
+                    continue
 
 
+            # CHARGE => ...
+            if current_state == "charge":
+                if "DATA_BP" in output and int(output[11:-1].strip()) <= 95:
+                    current_state = "atennas"
+                    # startup_state_process(process_id + 1, dynamic_vars)
+                    continue
+
+
+            # ATENNAS => ...
+            if current_state == "atennas":
+                if "DATA_BP" in output and int(output[11:-1].strip()) > 50:
+                    if "DATA_EA" in output: # IF WE ARE OVER EARTH
+                        current_state = "comms"
+                        # startup_state_process(process_id + 1, dynamic_vars)
+                        continue
+
+
+            # COMMS => ...
+            if current_state == "comms":
+                if "DATA_BP" in output and int(output[11:-1].strip()) > 50:
+                    if "DATA_AV" in output and int(output[11:-1].strip()) <= 0: # maybe fine-tune the threshold on lower and upper
+                        current_state = "deploy_payload"
+                        # startup_state_process(process_id + 1, dynamic_vars)
+                        continue
+           
+
+            # DEPLOY PAYLOAD => ...
+            if current_state == "deploy_payload":
+                if "DATA_BP" in output and int(output[11:-1].strip()) > 30:
+                    current_state = "orient_payload"
+                    # startup_state_process(process_id + 1, dynamic_vars)
+                    continue
             
+
+            # ORIENT PAYLOAD => ...
+            if current_state == "orient_payload":
+                if "DATA_EA" in output: # IF WE ARE OVER EARTH
+                    current_state = "comms"
+                    # startup_state_process(process_id + 1, dynamic_vars)
+                elif "DATA_BP" in output and int(output[11:-1].strip()) > 30: 
+                    current_state = "comms"
+                    # startup_state_process(process_id + 1, dynamic_vars)
+                    continue
+
+
             # DECIDE TO KILL
-            if process_id == 1:
-                if "4" in output or "5" in output:
-                    print("Process 1 terminated, due to data output")
-                    processes[process_id].terminate()
+            # if process_id == 1:
+            #   if "4" in output or "5" in output:
+            #        print("Process 1 terminated, due to data output")
+            #        processes[process_id].terminate()
 
         except queue.Empty:
             pass
