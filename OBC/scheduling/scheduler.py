@@ -11,19 +11,21 @@
 import multiprocessing
 import subprocess
 import queue
-from OBC import helpers
+
+import os
+
 
 # VARIABLES
-root_dir = helpers.get_abs_path()
+scheduling_dir = os.path.dirname(os.path.abspath(__file__))
 data_processes = [ # insert relative paths to these files
-    root_dir + "/scheduling/data_processes/battery_percentage.py",     
-    root_dir + "/scheduling/data_processes/imu_angularvelocity.py",     
-    root_dir + "/scheduling/data_processes/imu_velocity.py",
+    scheduling_dir + "/data_processes/battery_percentage.py",     
+    scheduling_dir + "/data_processes/imu_angularvelocity.py",     
+    scheduling_dir + "/data_processes/imu_velocity.py",
 ]
 state_processes = [ # insert relative paths to these files
-    root_dir + "/scheduling/state_processes/state_bootup.py",           # state process id = 100, index = 0
-    root_dir + "/scheduling/state_processes/state_detumble.py",         # state process id = 101, index = 1
-    root_dir + "/scheduling/state_processes/state_charge.py",           # state process id = 102, index = 2
+    scheduling_dir + "/state_bootup.py",           # state process id = 100, index = 0
+    scheduling_dir + "/state_detumble.py",         # state process id = 101, index = 1
+    scheduling_dir + "/state_charge.py",           # state process id = 102, index = 2
 ]
 
 
@@ -57,8 +59,6 @@ def startup_state_process(process_id, dynamic_vars):
 
 # MAIN FUNCTION
 if __name__ == "__main__":
-
-
     # SETUP MULTIPROCESSING
     output_queue = multiprocessing.Queue()
     processes = []
