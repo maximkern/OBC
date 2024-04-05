@@ -3,7 +3,7 @@
 # DONE step 2: run a process with real-time print updates
 # DONE step 3: accomplish this with two or more programs
 # DONE step 4: kill a program mid-run
-# step 5: dynamically start up a process
+# WORKING step 5: dynamically start up a process
 # ///////////////////////////////////////////////////////////////// #
 
 
