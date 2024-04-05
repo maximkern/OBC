@@ -94,7 +94,9 @@ if __name__ == "__main__":
 
             # DETUMBLE => CHARGE
             if "DATA_AV" in output:
-                value = output[16:-1].strip()
+                if int(output[11:-1].strip()) <= 0:
+                    print("yikes")
+
 
             
             # DECIDE TO KILL

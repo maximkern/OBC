@@ -6,5 +6,5 @@ import random
 while True:
     time.sleep(2)
     random_int = random.randint(1, 100)
-    output = "[DATA_VE] [Data: " + str(random_int) + "]"
+    output = "[DATA_VE] [" + str(random_int) + "]"
     print(output, flush=True)
