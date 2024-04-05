@@ -17,9 +17,9 @@ import os
 # VARIABLES
 scheduling_dir = os.path.dirname(os.path.abspath(__file__))
 data_processes = [ # insert relative paths to these files
-    scheduling_dir + "/data_processes/battery_percentage.py",     
-    scheduling_dir + "/data_processes/imu_angularvelocity.py",     
-    scheduling_dir + "/data_processes/imu_velocity.py",
+    scheduling_dir + "/data_processes/battery_percentage.py",      # data process id = 1
+    scheduling_dir + "/data_processes/imu_angularvelocity.py",     # data process id = 2
+    scheduling_dir + "/data_processes/imu_velocity.py",            # data process id = 3
 ]
 state_processes = [ # insert relative paths to these files
     scheduling_dir + "/state_processes/state_bootup.py",           # state process id = 100, index = 0
@@ -62,9 +62,7 @@ if __name__ == "__main__":
     output_queue = multiprocessing.Queue()
     processes = []
 
-
     # FIRE THE "BOOTUP STATE PROCESS"
-    print(state_processes[0])
     stop_event100 = multiprocessing.Event()
     process100 = multiprocessing.Process(target=run_script, args=(state_processes[0], output_queue, stop_event100, 100))
     process100.start()
@@ -83,16 +81,20 @@ if __name__ == "__main__":
         try:
             # OUTPUT PRINT STATEMENTS FROM PROCESSES
             process_id, output = output_queue.get_nowait()
-            print(f"Process {process_id}: {output}")
+            print(f"{output}")
 
 
             # OVERRIDE SWITCH
             # to be implemented
 
 
-            # SEQUENTIAL SWITCH
+            # STARTUP => DETUMBLE
             if "Bootup State Complete" in output:
                 startup_state_process(process_id + 1, dynamic_vars)
+
+            # DETUMBLE => CHARGE
+            if "DATA_AV" in output:
+                value = output[16:-1].strip()
 
             
             # DECIDE TO KILL

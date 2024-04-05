@@ -16,7 +16,7 @@ def on_loop():
 
 
 # MAIN FUNCTION
-print("Bootup State Startup", flush = True)
+print("\n [STATE_BOOTUP] [Started] \n", flush = True)
 __init__()
-print("Bootup State Complete", flush = True)
+print("\n [STATE_BOOTUP] [Ended] \n", flush = True)
 
