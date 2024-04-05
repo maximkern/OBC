@@ -11,7 +11,6 @@
 import multiprocessing
 import subprocess
 import queue
-
 import os
 
 
@@ -23,9 +22,9 @@ data_processes = [ # insert relative paths to these files
     scheduling_dir + "/data_processes/imu_velocity.py",
 ]
 state_processes = [ # insert relative paths to these files
-    scheduling_dir + "/state_bootup.py",           # state process id = 100, index = 0
-    scheduling_dir + "/state_detumble.py",         # state process id = 101, index = 1
-    scheduling_dir + "/state_charge.py",           # state process id = 102, index = 2
+    scheduling_dir + "/state_processes/state_bootup.py",           # state process id = 100, index = 0
+    scheduling_dir + "/state_processes/state_detumble.py",         # state process id = 101, index = 1
+    scheduling_dir + "/state_processes/state_charge.py",           # state process id = 102, index = 2
 ]
 
 
@@ -65,6 +64,7 @@ if __name__ == "__main__":
 
 
     # FIRE THE "BOOTUP STATE PROCESS"
+    print(state_processes[0])
     stop_event100 = multiprocessing.Event()
     process100 = multiprocessing.Process(target=run_script, args=(state_processes[0], output_queue, stop_event100, 100))
     process100.start()
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
 
             # SEQUENTIAL SWITCH
-            if "State Complete" in output:
+            if "Bootup State Complete" in output:
                 startup_state_process(process_id + 1, dynamic_vars)
 
             
