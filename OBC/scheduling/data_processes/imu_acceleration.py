@@ -7,11 +7,9 @@ from ...subsystems.imu import IMU
 gyro = IMU()
 
 while True:
-    time.sleep(0.5) # Interval to run measurements on
-
+    time.sleep(0.5)
     acc_x, acc_y, acc_z, vel_x, vel_y, vel_z = gyro.get_velocity()
 
-    output = "[DATA_VX] [" + str(vel_x) + "]" + "[DATA_VY] [" + str(vel_y) + "]" + "[DATA_VZ] [" + str(vel_z) + "]"
+    output = "[DATA_AX] [" + str(acc_x) + "]" + "[DATA_AY] [" + str(acc_y) + "]" + "[DATA_AZ] [" + str(acc_z) + "]"
     
     print(output, flush=True)
-

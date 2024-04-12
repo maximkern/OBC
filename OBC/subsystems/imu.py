@@ -40,7 +40,9 @@ class IMU:
     def get_gravity(self):
         return self.sensor.gravity
     
-    # def get_velocity(self): TODO: linear velocity and angular velocity
-        # calculations
+    def get_velocity(self): # TODO: linear velocity and angular velocity
+        acc_x, acc_y, acc_z = self.get_acceleration()
+        vel_x, vel_y, vel_z = self.get_gyro()
+        return acc_x, acc_y, acc_z, vel_x, vel_y, vel_z
 
     # def get_position(self):
