@@ -12,6 +12,6 @@ while True:
 
     battery_percentage = 100 * (v_bat - 35000)/6000 # Not an ideal measurement as discharge curves are nonlinear, we should track current
 
-    output = "[DATA_BP] [" + str(random_int) + "]" # Battery percentage
+    output = "[DATA_BP] [" + str(v_bat) + "]" # Battery percentage
     print(output, flush=True)
     

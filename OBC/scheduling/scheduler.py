@@ -17,8 +17,8 @@ import os
 # VARIABLES
 scheduling_dir = os.path.dirname(os.path.abspath(__file__))
 data_processes = [ # insert relative paths to these files
-    scheduling_dir + "/data_processes/battery_percentage.py",      # data process id = 1
     scheduling_dir + "/data_processes/imu_angularvelocity.py",     # data process id = 2
+    scheduling_dir + "/data_processes/battery_percentage.py",      # data process id = 1
     scheduling_dir + "/data_processes/imu_velocity.py",            # data process id = 3
 ]
 state_processes = [ # insert relative paths to these files
@@ -26,7 +26,6 @@ state_processes = [ # insert relative paths to these files
     scheduling_dir + "/state_processes/state_detumble.py",         # state process id = 101, index = 1
     scheduling_dir + "/state_processes/state_charge.py",           # state process id = 102, index = 2
 ]
-
 
 # STATE PROCESS IDS
 # start at 100 to allow for process ids 0-99 to be data processes
@@ -55,9 +54,12 @@ def startup_state_process(process_id, dynamic_vars):
     dynamic_vars["process" + str(process_id)].start()
     processes.append(dynamic_vars["process" + str(process_id)])
 
+    
+
 
 # MAIN FUNCTION
 if __name__ == "__main__":
+
     # SETUP MULTIPROCESSING
     output_queue = multiprocessing.Queue()
     processes = []
@@ -75,9 +77,11 @@ if __name__ == "__main__":
         dynamic_vars["stop_event" + str(i)] = multiprocessing.Event()
         dynamic_vars["process" + str(i)]  = multiprocessing.Process(target=run_script, args=(data_processes[i-1], output_queue, dynamic_vars["stop_event" + str(i)], i))
         dynamic_vars["process" + str(i)].start()
+
+        print(data_processes[i-1])
+
         processes.append(dynamic_vars["process" + str(i)])
-
-
+    
     current_state = "bootup"
 
     while True:
@@ -85,13 +89,13 @@ if __name__ == "__main__":
             # OUTPUT PRINT STATEMENTS FROM PROCESSES
             process_id, output = output_queue.get_nowait()
             print(f"{output}")
-
-
+            
             # OVERRIDE SWITCH
+            # DATA_BP = battery percentage
             # regardless of the current state, these MUST be done
             if "DATA_BP" in output and int(output[11:-1].strip()) <= 20:
                 current_state = "charge"
-                # startup_state_process(process_id + 1, dynamic_vars)
+                startup_state_process(process_id + 1, dynamic_vars)
                 continue
 
 
