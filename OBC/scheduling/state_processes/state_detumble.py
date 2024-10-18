@@ -6,7 +6,8 @@ import time
 
 # FUNCTIONS
 def __init__():
-    on_loop(5)
+    while True:
+        on_loop()
 
 
 def on_loop():
@@ -18,4 +19,3 @@ def on_loop():
 # MAIN FUNCTION
 print("\n [STATE_DETUMBLE] [Started] \n", flush = True)
 __init__()
-print("\n [STATE_DETUMBLE] [Ended] \n", flush = True)

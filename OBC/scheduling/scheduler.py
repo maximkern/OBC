@@ -12,19 +12,20 @@ import multiprocessing
 import subprocess
 import queue
 import os
+import re
 
 
 # VARIABLES
 scheduling_dir = os.path.dirname(os.path.abspath(__file__))
 data_processes = [ # insert relative paths to these files
-    scheduling_dir + "/data_processes/imu_angularvelocity.py",     # data process id = 2
-    scheduling_dir + "/data_processes/battery_percentage.py",      # data process id = 1
-    scheduling_dir + "/data_processes/imu_velocity.py",            # data process id = 3
+    scheduling_dir + "/data_processes/battery_data.py",            # data process id = 2
+    scheduling_dir + "/data_processes/imu_data.py",                # data process id = 1
 ]
 state_processes = [ # insert relative paths to these files
     scheduling_dir + "/state_processes/state_bootup.py",           # state process id = 100, index = 0
     scheduling_dir + "/state_processes/state_detumble.py",         # state process id = 101, index = 1
     scheduling_dir + "/state_processes/state_charge.py",           # state process id = 102, index = 2
+    scheduling_dir + "/state_processes/state_antennas.py",         # state process id = 103, index = 3
 ]
 
 # STATE PROCESS IDS
@@ -54,8 +55,23 @@ def startup_state_process(process_id, dynamic_vars):
     dynamic_vars["process" + str(process_id)].start()
     processes.append(dynamic_vars["process" + str(process_id)])
 
-    
 
+# FUNCTION TO STOP PROCESS
+def stop_state_process(process_id, dynamic_vars):
+    stop_event = dynamic_vars.get("stop_event" + str(process_id))
+    process = dynamic_vars.get("process" + str(process_id))
+    
+    if stop_event is not None:
+        stop_event.set()  # Signal the process to stop if it checks for this event
+        
+    if process is not None:
+        process.terminate()  # Forcefully terminate the process
+        process.join()  # Wait for the process to terminate
+
+def extract_data(output):
+    data_value = re.search(r'\[([-+]?\d+)\]', output)
+    if data_value:
+        return data_value.group(1)
 
 # MAIN FUNCTION
 if __name__ == "__main__":
@@ -77,9 +93,6 @@ if __name__ == "__main__":
         dynamic_vars["stop_event" + str(i)] = multiprocessing.Event()
         dynamic_vars["process" + str(i)]  = multiprocessing.Process(target=run_script, args=(data_processes[i-1], output_queue, dynamic_vars["stop_event" + str(i)], i))
         dynamic_vars["process" + str(i)].start()
-
-        print(data_processes[i-1])
-
         processes.append(dynamic_vars["process" + str(i)])
     
     current_state = "bootup"
@@ -101,27 +114,41 @@ if __name__ == "__main__":
 
             # STARTUP => ...
             if "[STATE_BOOTUP] [Ended]" in output:
+                # start up DETUMBLE
                 current_state = "detumble"
-                startup_state_process(process_id + 1, dynamic_vars)
+                startup_state_process(101, dynamic_vars)
 
 
             # DETUMBLE => ...
             if current_state == "detumble":
-                if "DATA_AV" in output and int(output[11:-1].strip()) <= 0: # maybe fine-tune the threshold on lower and upper
+                # if this line has data, extract it
+                value = extract_data(output)
+                # see if this threshold occurs: this will always have data
+                if "DATA_IMU_AV" in output and int(value) <= 0: # TODO: fine-tune the threshold on lower and upper
                     current_state = "charge"
-                    # startup_state_process(process_id + 1, dynamic_vars)
+                    # stop DETUMBLE
+                    stop_state_process(101, dynamic_vars)
+                    print("\n[STATE_DETUMBLE] [Ended] \n", flush = True)
+                    # start up CHARGE
+                    startup_state_process(102, dynamic_vars)
                     continue
 
 
             # CHARGE => ...
             if current_state == "charge":
-                if "DATA_BP" in output and int(output[11:-1].strip()) <= 95:
-                    current_state = "atennas"
-                    # startup_state_process(process_id + 1, dynamic_vars)
+                # if this line has data, extract it
+                value = extract_data(output)
+                if "DATA_BATTERY_BP" in output and int(value) >= 95:
+                    current_state = "antennas"
+                    # stop CHARGE
+                    stop_state_process(102, dynamic_vars)
+                    print("\n[STATE_CHARGE] [Ended] \n", flush = True)
+                    # start up ANTENNAS
+                    startup_state_process(103, dynamic_vars)
                     continue
 
 
-            # ATENNAS => ...
+            # ANTENNAS => ...
             if current_state == "atennas":
                 if "DATA_BP" in output and int(output[11:-1].strip()) > 50:
                     if "DATA_EA" in output: # IF WE ARE OVER EARTH
