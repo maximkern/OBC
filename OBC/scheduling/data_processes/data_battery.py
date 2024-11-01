@@ -18,16 +18,12 @@ while True:
     v_bat = random.randint(35000, 41000)
     battery_percentage = 100 * (v_bat - 35000)/6000 # Not an ideal measurement as discharge curves are nonlinear, we should track current
     # TODO: delete line below, which is just for testing
-    battery_percentage = random.randint(70,80)
-
-    #output = "[DATA_BATTERY_BP] [" + str(v_bat) + "]" # Battery percentage
-    #output2 = output + "1"
+    battery_percentage = random.randint(0,100)
 
     output_part1 = "[DATA_BATTERY_BP]"
     padding_length = DATA_OUTPUT_PADDING - len(output_part1)
     padding = " " * padding_length
     output = output_part1 + padding + "[" + str(battery_percentage) + "]"
-    
     print(output, flush=True)
 
 

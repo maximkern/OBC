@@ -16,23 +16,36 @@ import re
 
 
 # VARIABLES
+# checkpoints for FSM
+checkpoint = False
+deployed_already = False
+
+# processes
 scheduling_dir = os.path.dirname(os.path.abspath(__file__))
 data_processes = [ # insert relative paths to these files
-    scheduling_dir + "/data_processes/battery_data.py",            # data process id = 2
-    scheduling_dir + "/data_processes/imu_data.py",                # data process id = 1
+    scheduling_dir + "/data_processes/data_battery.py",            # data process id = 1
+    scheduling_dir + "/data_processes/data_imu.py",                # data process id = 2
+    scheduling_dir + "/data_processes/data_startracker.py",        # data process id = 3
 ]
 state_processes = [ # insert relative paths to these files
     scheduling_dir + "/state_processes/state_bootup.py",           # state process id = 100, index = 0
     scheduling_dir + "/state_processes/state_detumble.py",         # state process id = 101, index = 1
     scheduling_dir + "/state_processes/state_charge.py",           # state process id = 102, index = 2
     scheduling_dir + "/state_processes/state_antennas.py",         # state process id = 103, index = 3
+    scheduling_dir + "/state_processes/state_comms.py",            # state process id = 104, index = 4
+    scheduling_dir + "/state_processes/state_deploy.py",           # state process id = 105, index = 5
+    scheduling_dir + "/state_processes/state_orient.py",           # state process id = 106, index = 6
 ]
 
 # STATE PROCESS IDS
 # start at 100 to allow for process ids 0-99 to be data processes
-state_processes_ids = {"bootup" : 100,
-                       "detumble" : 101,
-                       "charge" : 102}
+state_processes_ids = {"bootup"     : 100,
+                       "detumble"   : 101,
+                       "charge"     : 102,
+                       "antennas"   : 103,
+                       "comms"      : 104,
+                       "deploy"     : 105,
+                       "orient"     : 106}
 
 
 # RUN A PROCESS
@@ -72,6 +85,11 @@ def extract_data(output):
     data_value = re.search(r'\[([-+]?\d+)\]', output)
     if data_value:
         return data_value.group(1)
+    
+def extract_data_multiple(output):
+    data_values = re.findall(r'\[([-+]?\d+(?:,\s*[-+]?\d+)*)\]', output)
+    values_list = [int(num) for num in data_values[0].split(',')]
+    return values_list
 
 # MAIN FUNCTION
 if __name__ == "__main__":
@@ -138,7 +156,8 @@ if __name__ == "__main__":
             if current_state == "charge":
                 # if this line has data, extract it
                 value = extract_data(output)
-                if "DATA_BATTERY_BP" in output and int(value) >= 95:
+                # TODO: change to 95, currently at 75 to allow for faster testing
+                if "DATA_BATTERY_BP" in output and int(value) >= 75:
                     current_state = "antennas"
                     # stop CHARGE
                     stop_state_process(102, dynamic_vars)
@@ -149,40 +168,77 @@ if __name__ == "__main__":
 
 
             # ANTENNAS => ...
-            if current_state == "atennas":
-                if "DATA_BP" in output and int(output[11:-1].strip()) > 50:
-                    if "DATA_EA" in output: # IF WE ARE OVER EARTH
+            if current_state == "antennas":
+                # if this line has data, extract it
+                value = extract_data(output)
+                if "DATA_BATTERY_BP" in output and int(value) >= 50:
+                    checkpoint = True
+                if checkpoint and "DATA_STARTRACKER_POS" in output:
+                    values = extract_data_multiple(output)
+                    if values[0] > 90 and values[1] > 90 and values[2] > 90:
+                        checkpoint = False
                         current_state = "comms"
-                        # startup_state_process(process_id + 1, dynamic_vars)
+                        # stop ANTENNAS
+                        stop_state_process(103, dynamic_vars)
+                        print("\n[STATE_ANTENNAS] [Ended] \n", flush = True)
+                        # start up COMMS
+                        startup_state_process(104, dynamic_vars)
                         continue
 
 
             # COMMS => ...
             if current_state == "comms":
-                if "DATA_BP" in output and int(output[11:-1].strip()) > 50:
-                    if "DATA_AV" in output and int(output[11:-1].strip()) <= 0: # maybe fine-tune the threshold on lower and upper
-                        current_state = "deploy_payload"
-                        # startup_state_process(process_id + 1, dynamic_vars)
+                # if this line has data, extract it
+                value = extract_data(output)
+                if "DATA_BATTERY_BP" in output and int(value) >= 50:
+                    checkpoint = True
+                # TODO: change threshold
+                if checkpoint and "DATA_IMU_AV" in output and int(value) <= 1:
+                    checkpoint = False
+                    # stop COMMS
+                    stop_state_process(104, dynamic_vars)
+                    print("\n[STATE_COMMS] [Ended] \n", flush = True)
+                    if not deployed_already:
+                        # start up DEPLOY
+                        deployed_already = True
+                        current_state = "deploy"
+                        startup_state_process(105, dynamic_vars)
+                        continue
+                    else:
+                        # start up ORIENT
+                        current_state = "orient"
+                        startup_state_process(106, dynamic_vars)
                         continue
            
 
             # DEPLOY PAYLOAD => ...
-            if current_state == "deploy_payload":
-                if "DATA_BP" in output and int(output[11:-1].strip()) > 30:
-                    current_state = "orient_payload"
-                    # startup_state_process(process_id + 1, dynamic_vars)
+            if current_state == "deploy":
+                # if this line has data, extract it
+                value = extract_data(output)
+                if "DATA_BATTERY_BP" in output and int(value) >= 30:
+                # TODO: wait until deploy is done
+                    # stop DEPLOY
+                    current_state = "orient"
+                    stop_state_process(105, dynamic_vars)
+                    print("\n[STATE_DEPLOY] [Ended] \n", flush = True)
+                    # start up ORIENT
+                    startup_state_process(106, dynamic_vars)
                     continue
-            
+
 
             # ORIENT PAYLOAD => ...
-            if current_state == "orient_payload":
-                if "DATA_EA" in output: # IF WE ARE OVER EARTH
-                    current_state = "comms"
-                    # startup_state_process(process_id + 1, dynamic_vars)
-                elif "DATA_BP" in output and int(output[11:-1].strip()) > 30: 
-                    current_state = "comms"
-                    # startup_state_process(process_id + 1, dynamic_vars)
-                    continue
+            if current_state == "orient":
+                if "DATA_STARTRACKER_POS" in output:
+                    values = extract_data_multiple(output)
+                    if values[0] > 90 and values[1] > 90 and values[2] > 90:
+                        # TODO: wait until orient is done
+                        # stop ORIENT
+                        stop_state_process(106, dynamic_vars)
+                        print("\n[STATE_ORIENT] [Ended] \n", flush = True)
+                        # start up COMMS
+                        current_state = "comms"
+                        startup_state_process(104, dynamic_vars)
+                        continue
 
 
             # DECIDE TO KILL
