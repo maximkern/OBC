@@ -22,6 +22,7 @@ deployed_already = False
 
 # processes
 scheduling_dir = os.path.dirname(os.path.abspath(__file__))
+
 data_processes = [ # insert relative paths to these files
     scheduling_dir + "/data_processes/data_battery.py",            # data process id = 1
     scheduling_dir + "/data_processes/data_imu.py",                # data process id = 2
