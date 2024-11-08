@@ -1,0 +1,18 @@
+# ///////////////////////////////////////////////////////////////// #
+# SUBSYSTEM: ANTENNA
+# ///////////////////////////////////////////////////////////////// #
+
+
+# IMPORTS
+
+
+
+# CLASS AND METHODS
+class subsystem_antenna:
+    def __init__(self):
+        pass
+
+    # DATA FUNCTIONS
+
+    # ACTION FUNCTIONS
+    pass

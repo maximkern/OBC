@@ -1,9 +1,17 @@
+# ///////////////////////////////////////////////////////////////// #
+# SUBSYSTEM: IMU
+# ///////////////////////////////////////////////////////////////// #
+
+
+# IMPORTS
 import board
 import busio
 import adafruit_bno055
 import time
 
-class IMU:
+
+# CLASS AND METHODS
+class subsystem_imu:
     def __init__(self, i2c):
         # i2c = busio.I2C(board.SCL, board.SDA) # TODO how to load this in
         self.sensor = adafruit_bno055.BNO055_I2C(i2c)
