@@ -4,6 +4,7 @@
 
 
 # IMPORTS
+from subsystems import config
 import board
 import busio
 import adafruit_bno055
