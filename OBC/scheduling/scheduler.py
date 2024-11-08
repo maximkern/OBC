@@ -1,4 +1,8 @@
 # ///////////////////////////////////////////////////////////////// #
+# SCHEDULER.PY
+# ///////////////////////////////////////////////////////////////// #
+# 
+# ///////////////////////////////////////////////////////////////// #
 # DONE step 1: run a process
 # DONE step 2: run a process with real-time print updates
 # DONE step 3: accomplish this with two or more programs
@@ -26,7 +30,7 @@ scheduling_dir = os.path.dirname(os.path.abspath(__file__))
 data_processes = [ # insert relative paths to these files
     scheduling_dir + "/data_processes/data_battery.py",            # data process id = 1
     scheduling_dir + "/data_processes/data_imu.py",                # data process id = 2
-    scheduling_dir + "/data_processes/data_startracker.py",        # data process id = 3
+    scheduling_dir + "/data_processes/data_star_tracker.py",       # data process id = 3
 ]
 state_processes = [ # insert relative paths to these files
     scheduling_dir + "/state_processes/state_bootup.py",           # state process id = 100, index = 0

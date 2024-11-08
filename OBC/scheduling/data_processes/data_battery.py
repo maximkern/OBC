@@ -1,22 +1,30 @@
+# ///////////////////////////////////////////////////////////////// #
+# DATA: BATERY SUBSYSTEM
+# ///////////////////////////////////////////////////////////////// #
+
+
 # IMPORTS
 import time
 import random
 from config import DATA_OUTPUT_PADDING
 
+
 # SETUP CONNECTIONS
 # ...
 
 
+# PRINT DATA
 while True:
-    time.sleep(1) # Interval to run measurements on
-
+    # Interval to run measurements on
+    time.sleep(1) 
 
     # DATA: battery percentage
-    # we should keep the battery voltage between 3.5 and 4.1 volts if possible to maximize the lifespan of our li-ions
+    # keep the battery voltage between 3.5 and 4.1 volts to max li-ion lifespan
     # units: mV
     # output: [DATA_BATTERY_BP]
     v_bat = random.randint(35000, 41000)
-    battery_percentage = 100 * (v_bat - 35000)/6000 # Not an ideal measurement as discharge curves are nonlinear, we should track current
+    # Not an ideal measurement as discharge curves are nonlinear, we should track current
+    battery_percentage = 100 * (v_bat - 35000)/6000 
     # TODO: delete line below, which is just for testing
     battery_percentage = random.randint(0,100)
 
@@ -26,12 +34,10 @@ while True:
     output = output_part1 + padding + "[" + str(battery_percentage) + "]"
     print(output, flush=True)
 
-
     # DATA: ...
     # description/notes
     # units
     # output: [DATA_BATTERY_...]
-
     
     # DATA: ...
     # description/notes

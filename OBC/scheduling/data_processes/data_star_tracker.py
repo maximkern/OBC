@@ -1,15 +1,22 @@
+# ///////////////////////////////////////////////////////////////// #
+# DATA: STAR TRACKER SUBSYSTEM
+# ///////////////////////////////////////////////////////////////// #
+
+
 # IMPORTS
 import time
 import random
 from config import DATA_OUTPUT_PADDING
 
+
 # SETUP CONNECTIONS
 # ...
 
 
+# PRINT DATA
 while True:
-    time.sleep(1) # Interval to run measurements on
-
+    # Interval to run measurements on
+    time.sleep(1) 
 
     # DATA: position
     # we should keep the battery voltage between 3.5 and 4.1 volts if possible to maximize the lifespan of our li-ions
